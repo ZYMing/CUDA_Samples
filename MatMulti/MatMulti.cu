@@ -24,10 +24,10 @@ __global__ void addKernel(int *c, const int *a, const int *b)
     c[i] = a[i] + b[i];
 }
 
-/* MatMultiply£ºCPUÏÂ¾ØÕó³Ë·¨
-*  a:µÚÒ»¸ö¾ØÕóÖ¸Õë£¬±íÊ¾a[M][N];
-*  b:µÚ¶ş¸ö¾ØÕóÖ¸Õë£¬±íÊ¾b[N][S];
-*  result:½á¹û¾ØÕó£¬±íÊ¾Îªresult[M][S];
+/* MatMultiplyï¼šCPUä¸‹çŸ©é˜µä¹˜æ³•
+*  a:ç¬¬ä¸€ä¸ªçŸ©é˜µæŒ‡é’ˆï¼Œè¡¨ç¤ºa[M][N];
+*  b:ç¬¬äºŒä¸ªçŸ©é˜µæŒ‡é’ˆï¼Œè¡¨ç¤ºb[N][S];
+*  result:ç»“æœçŸ©é˜µï¼Œè¡¨ç¤ºä¸ºresult[M][S];
 */
 void CPUMatMultiply(const int * a,const int * b, int *result,const int M,const int N,const int S)
 {
@@ -38,7 +38,7 @@ void CPUMatMultiply(const int * a,const int * b, int *result,const int M,const i
 			int index = i * S + j;
 			result[index] = 0;
 
-			//¼ÆËãÃ¿Ò»¸öÔªËØµÄ½á¹û
+			//è®¡ç®—æ¯ä¸€ä¸ªå…ƒç´ çš„ç»“æœ
 			for (int k = 0; k < N; k++)
 			{
 				result[index] += a[i * N + k] * b[k * S + j];
@@ -47,10 +47,10 @@ void CPUMatMultiply(const int * a,const int * b, int *result,const int M,const i
 	}
 }
 
-/* gpuMatMultKernel£ºGPUÏÂ¾ØÕó³Ë·¨ºËº¯Êı
-*  a:µÚÒ»¸ö¾ØÕóÖ¸Õë£¬±íÊ¾a[M][N]
-*  b:µÚ¶ş¸ö¾ØÕóÖ¸Õë£¬±íÊ¾b[N][S]
-*  result:½á¹û¾ØÕó£¬±íÊ¾result[M][S]
+/* gpuMatMultKernelï¼šGPUä¸‹çŸ©é˜µä¹˜æ³•æ ¸å‡½æ•°
+*  a:ç¬¬ä¸€ä¸ªçŸ©é˜µæŒ‡é’ˆï¼Œè¡¨ç¤ºa[M][N]
+*  b:ç¬¬äºŒä¸ªçŸ©é˜µæŒ‡é’ˆï¼Œè¡¨ç¤ºb[N][S]
+*  result:ç»“æœçŸ©é˜µï¼Œè¡¨ç¤ºresult[M][S]
 */
 __global__ void gpuMatMultKernel(const int *a, const int *b, int *result, const int M, const int N, const int S)
 {
@@ -70,10 +70,10 @@ __global__ void gpuMatMultKernel(const int *a, const int *b, int *result, const 
 	}
 }
 
-/* gpuMatMultWithSharedKernel£ºGPUÏÂÊ¹ÓÃsharedÄÚ´æµÄ¾ØÕó³Ë·¨
-*  a:µÚÒ»¸ö¾ØÕóÖ¸Õë£¬±íÊ¾a[height_A][width_A]
-*  b:µÚ¶ş¸ö¾ØÕóÖ¸Õë£¬±íÊ¾b[width_A][width_B]
-*  result:½á¹û¾ØÕó£¬±íÊ¾result[height_A][width_B]
+/* gpuMatMultWithSharedKernelï¼šGPUä¸‹ä½¿ç”¨sharedå†…å­˜çš„çŸ©é˜µä¹˜æ³•
+*  a:ç¬¬ä¸€ä¸ªçŸ©é˜µæŒ‡é’ˆï¼Œè¡¨ç¤ºa[height_A][width_A]
+*  b:ç¬¬äºŒä¸ªçŸ©é˜µæŒ‡é’ˆï¼Œè¡¨ç¤ºb[width_A][width_B]
+*  result:ç»“æœçŸ©é˜µï¼Œè¡¨ç¤ºresult[height_A][width_B]
 */
 template<int BLOCK_SIZE>
 __global__ void gpuMatMultWithSharedKernel(const int *a, const int *b, int *result, const int height_A, const int width_A, const int width_B)
@@ -120,11 +120,11 @@ __global__ void gpuMatMultWithSharedKernel(const int *a, const int *b, int *resu
 	result[begin_result + thread_y * width_B + thread_x] = result_temp;
 }
 
-/* gpuMatMultWithTextureKernel£ºGPUÏÂÊ¹ÓÃtextureÄÚ´æµÄ¾ØÕó³Ë·¨
-*  result£º½á¹û¾ØÕó£¬±íÊ¾Îªresult[M][S];
-*  M£º±íÊ¾Îª¾ØÕóAÓë¾ØÕóresultµÄĞĞÊı
-*  N£º±íÊ¾¾ØÕóAµÄÁĞÊı£¬¾ØÕóBµÄĞĞÊı
-*  S£º±íÊ¾¾ØÕóBºÍ¾ØÕóresultµÄÁĞÊı
+/* gpuMatMultWithTextureKernelï¼šGPUä¸‹ä½¿ç”¨textureå†…å­˜çš„çŸ©é˜µä¹˜æ³•
+*  resultï¼šç»“æœçŸ©é˜µï¼Œè¡¨ç¤ºä¸ºresult[M][S];
+*  Mï¼šè¡¨ç¤ºä¸ºçŸ©é˜µAä¸çŸ©é˜µresultçš„è¡Œæ•°
+*  Nï¼šè¡¨ç¤ºçŸ©é˜µAçš„åˆ—æ•°ï¼ŒçŸ©é˜µBçš„è¡Œæ•°
+*  Sï¼šè¡¨ç¤ºçŸ©é˜µBå’ŒçŸ©é˜µresultçš„åˆ—æ•°
 */
 __global__ void gpuMatMultWithTextureKernel(int * result, const int M, const int N, const int S)
 {
@@ -147,11 +147,11 @@ __global__ void gpuMatMultWithTextureKernel(int * result, const int M, const int
 }
 
 
-// mainÖ÷º¯Êı£¬·Ö±ğÔËĞĞCPUºÍGPU¾ØÕó³Ë·¨º¯Êı£¬±È½Ï¶şÕßµÄÔËĞĞÊ±¼ä
+// mainä¸»å‡½æ•°ï¼Œåˆ†åˆ«è¿è¡ŒCPUå’ŒGPUçŸ©é˜µä¹˜æ³•å‡½æ•°ï¼Œæ¯”è¾ƒäºŒè€…çš„è¿è¡Œæ—¶é—´
 int main()
 {
 
-	//È·¶¨¾ØÕóµÄ´óĞ¡
+	//ç¡®å®šçŸ©é˜µçš„å¤§å°
 	int M = 0, N = 0, S = 0;
 	printf("please input the value of M (Mat a's row):");
 	scanf("%d", &M);
@@ -160,7 +160,7 @@ int main()
 	printf("please input the value of S (Mat b's column):");
 	scanf("%d", &S);
 
-	//·ÖÅä¾ØÕó¿Õ¼ä
+	//åˆ†é…çŸ©é˜µç©ºé—´
 	int * a = (int *)malloc(M * N * sizeof(int));
 	if (NULL == a)
 	{
@@ -173,7 +173,7 @@ int main()
 		printf("the malloc of Mat b is failed!\n");
 		return 0;
 	}
-	//cpuÓëgpuµÄ½á¹û¾ØÕó·Ö±ğ´æ·Å
+	//cpuä¸gpuçš„ç»“æœçŸ©é˜µåˆ†åˆ«å­˜æ”¾
 	int * cpuResult = (int *)malloc(M * S * sizeof(int));
 	if (NULL == cpuResult)
 	{
@@ -187,7 +187,7 @@ int main()
 		return 0;
 	}
 
-	//Éú³É¾ØÕóÊı¾İ
+	//ç”ŸæˆçŸ©é˜µæ•°æ®
 	printf("\nstart random the Mat a...\n");
 	for (int i = 0; i < M; i++)
 	{
@@ -206,19 +206,19 @@ int main()
 		}
 	}
 
-	//Í³¼ÆCPUÔËĞĞ³Ë·¨µÄÊ±¼ä
+	//ç»Ÿè®¡CPUè¿è¡Œä¹˜æ³•çš„æ—¶é—´
 	clock_t start, finish;
 	double totalTime = 0.0;
 	start = clock();
 
-	//µ÷ÓÃCPU¾ØÕó³Ë·¨º¯Êı
+	//è°ƒç”¨CPUçŸ©é˜µä¹˜æ³•å‡½æ•°
 	CPUMatMultiply(a, b, cpuResult, M, N, S);
 
 	finish = clock();
 	totalTime = (double)(finish - start) / CLOCKS_PER_SEC;
 	printf("\nThe total time is %lf seconds!\n", totalTime);
 
-	//µ÷ÓÃGPU¾ØÕó³Ë·¨º¯Êı
+	//è°ƒç”¨GPUçŸ©é˜µä¹˜æ³•å‡½æ•°
 	cudaError_t cudaStatus = mulWithCuda(a, b, gpuResult, M, N, S);
 	//cudaError_t cudaStatus = mulWithCudaTex(a, b, gpuResult, M, N, S);
 	if (cudaStatus != cudaSuccess)
@@ -226,7 +226,7 @@ int main()
 		fprintf(stderr, "mulWithCuda failed!");
 		return 0;
 	}
-	//´òÓ¡½á¹û¾ØÕóresult
+	//æ‰“å°ç»“æœçŸ©é˜µresult
 	/*printf("\nthe result of CPU :\n");
 	for (int i = 0; i < M; i++)
 	{
@@ -247,7 +247,7 @@ int main()
 		printf("\n");
 	}*/
 
-	//È·ÈÏCPUºÍGPU¾ØÕó³Ë·¨½á¹ûÊÇ·ñÏàÍ¬£¬´Ó¶øËµÃ÷½á¹ûÊÇ·ñÕıÈ·
+	//ç¡®è®¤CPUå’ŒGPUçŸ©é˜µä¹˜æ³•ç»“æœæ˜¯å¦ç›¸åŒï¼Œä»è€Œè¯´æ˜ç»“æœæ˜¯å¦æ­£ç¡®
 	for (int i = 0; i < M; i++)
 	{
 		for (int j = 0; j < S; j++)
@@ -343,7 +343,7 @@ Error:
     return cudaStatus;
 }
 
-// µ÷ÓÃCUDAÔËĞĞGPU¾ØÕó³Ë·¨ºËº¯Êı
+// è°ƒç”¨CUDAè¿è¡ŒGPUçŸ©é˜µä¹˜æ³•æ ¸å‡½æ•°
 cudaError_t mulWithCuda(const int *a, const int *b, int *result, const int M, const int N, const int S)
 {
 	int *dev_a = 0;
@@ -443,8 +443,8 @@ Error:
 	return cudaStatus;
 }
 
-//µ÷ÓÃCUDAÔËĞĞGPU¾ØÕó³Ë·¨ºËº¯Êı
-//½«¾ØÕóAÓë¾ØÕóB°ó¶¨µ½ÎÆÀíÄÚ´æÖĞ
+//è°ƒç”¨CUDAè¿è¡ŒGPUçŸ©é˜µä¹˜æ³•æ ¸å‡½æ•°
+//å°†çŸ©é˜µAä¸çŸ©é˜µBç»‘å®šåˆ°çº¹ç†å†…å­˜ä¸­
 cudaError_t mulWithCudaTex(const int *a, const int *b, int *result, const int M, const int N, const int S)
 {
 	int * dev_a = 0;
