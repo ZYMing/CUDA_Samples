@@ -59,18 +59,6 @@ cudaError_t choose_Device()
 	return cudaStatus;
 }
 
-cudaError_t init_Cuda()
-{
-	cudaError_t cudaStatus = cudaGraphicsGLRegisterBuffer(&resource, bufferObj, cudaGraphicsMapFlagsNone);
-	if (cudaStatus != cudaSuccess)
-	{
-		fprintf(stderr, "cudaGraphicsGLRegisterBuffer failed!\n");
-		return cudaStatus;
-	}
-		
-	return cudaStatus;
-}
-
 void displayFunc()
 {
 	uchar4 * devPtr;
@@ -130,10 +118,10 @@ int main(int argc, char ** argv)
 
 	init_OpenGL(argc, argv);
 
-	cudaStatus = init_Cuda();
+	cudaStatus = cudaGraphicsGLRegisterBuffer(&resource, bufferObj, cudaGraphicsMapFlagsNone);
 	if (cudaStatus != cudaSuccess)
 	{
-		fprintf(stderr, "init_Cuda failed! Exit...\n");
+		fprintf(stderr, "cudaGraphicsGLRegisterBuffer failed!\n");
 		exit(0);
 	}
 
